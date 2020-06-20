@@ -28,7 +28,8 @@ url: "https://sabastiaan.github.io" # the base hostname & protocol for your site
 github_username:  sabastiaan
 
 # Build settings
-theme: jekyll-theme-hydeout
+theme: minima
+#theme: jekyll-theme-hydeout
 plugins:
   - jekyll-feed
 
