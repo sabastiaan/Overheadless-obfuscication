@@ -11,7 +11,6 @@ categories: x86 bin
 x86 programs underpin a large portion of our world today, much effort has been focused on making the representation of programs as small as possible. However I believe there is whole world to explore, even with regards to performance. If we would drop the notion that they should be as small as possible when read sequentually. In this piece I will try to give an overview of my work concering with Binary overlapping. Where the same byte sequence can be interperted as multiple programs if you start parsing with just one byte off.  
 
 
-#TOC
 
 When an x86 CPU executes a program, a pointer points towards a seqeunce of bytes.
 Which will get read byte for byte untill the CPU recognizes the instruction and it will execute it.
@@ -38,17 +37,17 @@ Consider the binary following binary sequence
 31  ff          XOR EDI, EDI
 ```
 
-If executed, it will first read the byte 0f, this doesn't mean anything yet. So we will parse a second byte, c0. Still nothing, then we read d0 and we get a specified instruction. In this case NOP EAX, EAX. Best described as "No OPeration executed with register EAX and EAX".
+If executed, it will first read the byte `0f`, this doesn't mean anything yet. So we will parse a second byte, `c0`. Still nothing, then we read `d0` and we get a specified instruction. In this case `NOP EAX, EAX`. Best described as "No OPeration executed with register EAX and EAX".
 
-Afterwards we read two NOP's and a XOR insruction that XOR's both it's inputs. Hence zero'ing out all content!.
+Afterwards we read two `NOP`s and a `XOR` insruction that `XOR`s both it's inputs. Hence zero'ing out all content.
 
 What this program does is not really that interesting. Afterall it does nothing for a bit and then only zero's out an register. But after 3 years this is the most beautifull program I could think of.
 
 First things first, why do we execute the same operation for the byte sequence `0f 0d c0` as for `90`. They share no bytes so what is up with this?
 
-That is because if we look up `0f 0d c0` in the instruction manual, we can see that it is an instruction for prefechting hints. So it should not effect state on the cpu (or at least observable to us). And because of this the dissasmbler in which I generated this output decided it was equivelent to a NOP, and should be stated as such.
+That is because if we look up `0f 0d c0` in the instruction manual, we can see that it is an instruction for prefechting hints. So it should not effect state on the cpu (or at least observable to us). And because of this the dissasmbler in which I generated this output decided it was equivelent to a NOP, and should be displayed as such.
 
-However this above piece of code is only disassembled like that because I throw it inside a proper disassembler, let's take a look at the output of objdump.
+However this above piece of code is only disassembled like that because I threw it inside a proper disassembler (XED), let's take a look at the output of objdump.
 
 ```
 0f                      prefetch (bad)
@@ -56,22 +55,24 @@ However this above piece of code is only disassembled like that because I throw 
 ....
 ```
 
-TThree interstings things happend here, first of all it didn't decode it correctly. Which isn't to uncommon even in mainstream dissasemblers  [0]. 
+Three interstings things happend here, first of all it didn't decode it correctly. Which isn't to uncommon even in mainstream dissasemblers if you start looking for it[0]. 
 
-The second interesting that happend we suddenly obtained a totally new instruction that we have not seen before by starting execution/parsing one byte later!
+The second interesting that happend we suddenly obtained a totally new instruction that we have not seen before by starting execution/parsing one byte later, while still using the same original byte sequence!
 
 But most importantly of all, _what is the next executed instruction_?
-We know it is should be the next byte in the stream, so looking at the first output, it should start with _ff_.
+We know it is should be the next byte in the stream, so looking at the first output: here we can see it should start with _FF_.
 
 If we would continue this, we would have to completely indepedented programs inside the same original binary sequence!
 
 # Usecases
 
-This technique has 2 very interesting use cases. The original reason how I came up with this idea, obfuscation. 
-Notice that the second output, the output of the dissasembler objdump, can now theoritically be completely different from what another actor, like your CPU, could read. Implying that maleware can be completely hidden from maleware analysis or automatic analysis tools without any overhead, by exploiting a single parsing error. Which can be guarteed against most common techniques (this will the topic of another blog).
+This technique has 2 very interesting use cases. The original use case, and the reason why I came up with this idea, is obfuscation. 
+Notice that in the second output, the output of the dissasembler objdump, can now theoritically be _completely different_ from what another actor, like your CPU, could read. Implying that maleware can be completely hidden from maleware analysis or automatic analysis tools without _any_ overhead. Only by exploiting a single parsing error. Which can be guaranteed  against most common dissasembler parsing techniques (this will the topic of another blog).
 
 The second and probably more exciting use case is performance.
-Above we didn't really gave that much thought on what the programs are. Let us consider a program P. If we take the second half of P, and we were magically able to alter the first half of P such that it's functionallity would be retained, and that if you would start parsing from the second byte it would execute the second half. Then we have effectively halfed our program size! And we could do this recursively until we have reducecd it by a massive factor.
+In the examples above we didn't really gave that much thought on what the programs are or are supposed to look like.
+
+But let us consider a program P. If we take the second half of P, and we were magically able to alter the first half of P such that it's functionallity would be retained, and that if you would start parsing from the second byte it would execute the second half of the original P. Then we have effectively halfed our program size! And we could continue doing this  until we have reducecd it by a massive factor.
 
 
 # Required properties for overlapping
@@ -112,17 +113,17 @@ Let me illustrate the complexity with the following example:
 Suppose we have 2 programs P and P', which we want to overlap. Meaning that the first byte of P' should be the second byte of P.
 Consider that P is a simple program that wants to first execute an `add` followed by a `mov`, while P' wants to execute an `xor` followed by a `jmp`. For brevities sake I omitted possible arguments. 
 
-Our magical super awesome assembler would look at P, recognizes that an we should output an binary enocding for `add`. Now it would look up which bytes are defined to represent `add` and it would emit it to some structure. 
+Our magical super awesome assembler would look at P, recognizes that an we should output an binary encoding for `add`. Now it would look up which bytes are defined to represent `add` and it would emit it to some structure. 
 Let's say for `add` the assembler emitted `10 AE`. 
 
 Now before we continue, we have to satisfy that P' also get's generated correctly. Unfortantly for us the `xor` instruction is defined to be `06 84`.
 
 In it's current form it seems as if `add` and `xor` are incompatable for binary overlapping.
-Luckly for us, due to the incredibly complex nature there are a large set of transformations that to remedy this.
+Luckly for us, due to the incredibly complex nature there are a large set of transformations that can help to remedy this situation.
 
-For instance it is not completely uncommon that an instruction has a different encoding. So while `add` was first defined to be `10 AE` at first, we might substitude it with `30 06 84 20`. Enabling us to binary overlap at a cost of lengthening P compared to what we otherwise would.
+For instance it is not completely uncommon that an instruction has a different encoding. So while `add` was first defined to be `10 AE` at first, it might be the case that in the documentation an equivelent encoding exists for our usecase, so maybe we might substitude it with `30 06 84 20`. Enabling us to binary overlap at a cost of lengthening P compared to what we otherwise would.
 
-So now we got `add` and `xor` to overlap. But now we run into the exact same problem for the second instruction for P, `mov`!
+So now we got `add` and `xor` to overlap. But now we run into the exact same problem for the second instruction for P, our generated encoding for `mov` may now only start with `20`!
 
 This means that chance of being able satisfy the overlapping properties for instructions is __incredibily__ small. 
 Hence we need every help we can get through combining many different techiques, such that we get an acceptable rate of being able to produce our desired binaries. 
@@ -134,7 +135,7 @@ Through the 3 years that I have been thinking about this problem, I accumlated a
 
 * use a semantically equivelent instruction, like chaning `ADD 1` to `INC`remenent. Using `prefetchw` directives instead of `NOP`s.
 * change an instruction encoding by using different prefixes or or encoding mechanisms. If an instruction ends with `48`, we can simply prepend `48` to any instruction and it will considered as a prefix. Guarenteeing overlap. 
-* re-order instructions before they get used
+* re-order instructions before they get used like done in out-of-order execution
 * alter an instruction, but appending the inverse of the change. i.e `ADD 2` would become `ADD 5` with `SUB 3` appended. This technique can also be used with memory locations but requires much more setup 
 * jumping ahead a few bytes S.T we can we can use later bytes instead of the current one in a given stream 
 * inserting nop's or equivelants (or something like `add` and `sub` with the same argument). NOP's are great since these can have long arbitrary arguments see [1]
@@ -151,6 +152,12 @@ Implementing techniques so that arbitrary programs can be generated still requir
 Below is a picture of found binary, I also gave it the requirement of starting with an instruction that objdump wouldn't recognize. Meaning that it also demonstrates a method on how to hide programs from dissasemblers.
 
 <insert image between objdump and xed> 
+
+
+
+
+
+
 
 
 
