@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Binary overlapping?"
+title:  "Binary overlapping"
 date:   2020-06-20 23:09:46 +0200
 categories: x86 bin
 ---
@@ -8,6 +8,10 @@ categories: x86 bin
 
 
 # Binary overlapping
+x86 programs underpin a large portion of our world today, much effort has been focused on making the representation of programs as small as possible. However I believe there is whole world to explore, even with regards to performance. If we would drop the notion that they should be as small as possible when read sequentually. In this piece I will try to give an overview of my work concering with Binary overlapping. Where the same byte sequence can be interperted as multiple programs if you start parsing with just one byte off.  
+
+
+#TOC
 
 When an x86 CPU executes a program, a pointer points towards a seqeunce of bytes.
 Which will get read byte for byte untill the CPU recognizes the instruction and it will execute it.
@@ -56,8 +60,8 @@ TThree interstings things happend here, first of all it didn't decode it correct
 
 The second interesting that happend we suddenly obtained a totally new instruction that we have not seen before by starting execution/parsing one byte later!
 
-But most importantly of all, __what is the next executed instruction__?
-We know it is should be the next byte in the stream, so looking at the first output, it should start with _ff__.
+But most importantly of all, _what is the next executed instruction_?
+We know it is should be the next byte in the stream, so looking at the first output, it should start with _ff_.
 
 If we would continue this, we would have to completely indepedented programs inside the same original binary sequence!
 
@@ -95,7 +99,59 @@ c5 fc 77                vzeroall
 ```
 
 
-# generating this
+# Obtaining these binarires
+We basically have 3 options that I'm aware of for obtaining these binaries.
+We can write these binaries by hand, this is of course no option besides for very specialized cases and probably not worth it.
+
+We could try alter the generation proccess of our compiler/assembler.
+Computentionally generating binaries like this is really heavy and our current tooling are not really designed to support generating these binaries. 
+
+## Generation 
+
+Let me illustrate the complexity with the following example: 
+Suppose we have 2 programs P and P', which we want to overlap. Meaning that the first byte of P' should be the second byte of P.
+Consider that P is a simple program that wants to first execute an `add` followed by a `mov`, while P' wants to execute an `xor` followed by a `jmp`. For brevities sake I omitted possible arguments. 
+
+Our magical super awesome assembler would look at P, recognizes that an we should output an binary enocding for `add`. Now it would look up which bytes are defined to represent `add` and it would emit it to some structure. 
+Let's say for `add` the assembler emitted `10 AE`. 
+
+Now before we continue, we have to satisfy that P' also get's generated correctly. Unfortantly for us the `xor` instruction is defined to be `06 84`.
+
+In it's current form it seems as if `add` and `xor` are incompatable for binary overlapping.
+Luckly for us, due to the incredibly complex nature there are a large set of transformations that to remedy this.
+
+For instance it is not completely uncommon that an instruction has a different encoding. So while `add` was first defined to be `10 AE` at first, we might substitude it with `30 06 84 20`. Enabling us to binary overlap at a cost of lengthening P compared to what we otherwise would.
+
+So now we got `add` and `xor` to overlap. But now we run into the exact same problem for the second instruction for P, `mov`!
+
+This means that chance of being able satisfy the overlapping properties for instructions is __incredibily__ small. 
+Hence we need every help we can get through combining many different techiques, such that we get an acceptable rate of being able to produce our desired binaries. 
+
+
+### overview of generation techniques
+Through the 3 years that I have been thinking about this problem, I accumlated a list of possible techniques:
+
+
+* use a semantically equivelent instruction, like chaning `ADD 1` to `INC`remenent. Using `prefetchw` directives instead of `NOP`s.
+* change an instruction encoding by using different prefixes or or encoding mechanisms. If an instruction ends with `48`, we can simply prepend `48` to any instruction and it will considered as a prefix. Guarenteeing overlap. 
+* re-order instructions before they get used
+* alter an instruction, but appending the inverse of the change. i.e `ADD 2` would become `ADD 5` with `SUB 3` appended. This technique can also be used with memory locations but requires much more setup 
+* jumping ahead a few bytes S.T we can we can use later bytes instead of the current one in a given stream 
+* inserting nop's or equivelants (or something like `add` and `sub` with the same argument). NOP's are great since these can have long arbitrary arguments see [1]
+* let instructions use different registers 
+* let instructions switch between using registers or memory
+
+All of these techniques require extensive knowlegde of the program to a level typically not available to an assembler. 
+Luckly if implemented gives an enourmous search space in which we can find potential candidate programs since we can keep infintily combining them.
+In a future blog I will expand these entries.
+
+## STOKE 
+
+Implementing techniques so that arbitrary programs can be generated still requires a large engineering effort. However I temporarly circumvented this problem by modifiying STOKE[2] with a custom cost function for generating the largest program that still is overlapping. The result is a 70+ byte binary, albeit it did not presevere my original given sementics, it did proof the existance of these objects. Enough in my opinion to warrent further research into this direction.
+Below is a picture of found binary, I also gave it the requirement of starting with an instruction that objdump wouldn't recognize. Meaning that it also demonstrates a method on how to hide programs from dissasemblers.
+
+<insert image between objdump and xed> 
+
 
 
 *take this definition as wide as you wish, it can be desired, undesired, valid or unvalid. You could techniqually have a desired unvalid program by catching UD exceptions. I just thought it would be helpfull to include some notion of correctness for sanities sake. That's also why I choose the wording sementacily valid. Since I sure as hell can't define what __that__ is supposed to mean
@@ -107,3 +163,4 @@ c5 fc 77                vzeroall
 
 
 
+[1] Jämthagen, Christopher, Patrik Lantz, and Martin Hell. "A new instruction overlapping technique for anti-disassembly and obfuscation of x86 binaries." 2013 Workshop on Anti-malware Testing Research. IEEE, 2013.
