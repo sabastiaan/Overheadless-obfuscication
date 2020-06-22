@@ -23,7 +23,7 @@ email: sebpeters@outlook.com
 description: >- # this means to ignore newlines until "baseurl:"
    Adventures into x86-64 and other crazy things
   
-baseurl: "/Overheadless-obfuscication" # the subpath of your site, e.g. /blog
+baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://sabastiaan.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  sabastiaan
 
