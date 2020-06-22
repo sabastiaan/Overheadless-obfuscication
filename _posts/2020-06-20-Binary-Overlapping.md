@@ -27,7 +27,7 @@ And a program is a simply list of instructions.
 
 So let us dive into the good stuff!
 
-Consider the binary following binary sequence. The lines are seperated on an instruction level basis. The values in hexadecimal are display to the left, and the corrosponding assembler form to the right. 
+Consider the binary following binary sequence. The lines are separated on an instruction level basis. The values in hexadecimal are display to the left, and the corresponding assembler form to the right. 
 
 ```
 0f 0d c0        NOP EAX, EAX
@@ -38,9 +38,9 @@ Consider the binary following binary sequence. The lines are seperated on an ins
 
 If executed by the CPU, it will first read the byte `0f`, this doesn't mean anything yet. So we will parse a second byte, `c0`. Still nothing, then we read `d0` and we get a specified instruction. In this case `NOP EAX, EAX`. Best described as "No OPeration executed with register EAX and EAX".
 
-Afterward, we read two `NOP`s and a `XOR` instruction that `XOR`s both it's inputs. Hence zero'ing out all content.
+Afterward, we read two `NOP`s and a `XOR` instruction that `XOR`s both it's inputs. Hence zeroing out all content.
 
-What this program does is not that interesting. Afterall it does nothing for a bit and then only zero's out an register. But after 3 years this is the most beautiful program I could think of.
+What this program does is not that interesting. After all it does nothing for a bit and then only zero's out an register. But after 3 years this is the most beautiful program I could think of.
 
 First things first, why do we execute the same operation for the byte sequence `0f 0d c0` as for `90`. How is it possible that two byte sequences that share not a single byte represent the same instruction?
 
@@ -87,18 +87,16 @@ ff c5                   inc    ebp
 fc                      cld
 77 90                   ja     0xffffffffffffff95
 90                      nop             <- same as the second stream
-.
-.
-.
+...
+...
 ```
 
 ```
 c5 fc 77                vzeroall
 90                      nop
 90                      nop             <- same as the first stream
-.
-.
-.
+...
+...
 ```
 
 
@@ -127,7 +125,7 @@ For instance, it is not completely uncommon that an instruction has a different 
 
 So now we got `add` and `xor` to overlap. But now we run into the same problem for the second instruction for P<sup>1</sup>, our generated encoding for `mov` may now only start with `20`!
 
-This means that chance of being able to satisfy the overlapping properties for instructions is __incredibily__ small. 
+This means that chance of being able to satisfy the overlapping properties for instructions is __incredibly__ small. 
 Hence we need every help we can get through combining many different techniques, such that we get an acceptable rate of being able to produce our desired binaries. 
 
 
@@ -158,15 +156,9 @@ Below is a picture of found binary, I also gave it the requirement of starting w
 
 # The next step
 
-Unfortionatlly for us STOKE has clear scaling issues. Even though we would like to try to create incremental progress, the limitations are in my opinion to servere to continue this path. Another large problem is that we need to guarentee semantic equivalency betweeen our in- and output program. The fact that STOKE operates on stochistic processes makes it hard to evualuate the quality of possible generation techniques. 
+The next step that should be taken is implementing more techniques like described above. Currently experiments on STOKE are ran with the limitation that STOKE mainly performs contextless mutations randomly to a binary. Heavily limiting the effectiveness. Verifying more context dependent mutations was always a major issue. 
 
-This leads us to the unfortunate situation in which 
-
-
-
-
-
-*take this definition as wide as you wish, it can be desired, undesired, valid or invalid. You could technically have a desired invalid program by catching UD exceptions. I just thought it would be helpful to include some notion of correctness for sanities sake. That's also why I choose the wording momentarily valid. Since I sure as hell can't define what __that__ is supposed to mean
+However with new recent work nearly the entire semantics of x86 instruction set have been formally encoded[2] and implemented in STOKE. With this we efficiently we can start moving from arbitrary mutations, to new novel optimizations.
 
 
 
@@ -176,3 +168,5 @@ This leads us to the unfortunate situation in which
 
 
 [1] Jämthagen, Christopher, Patrik Lantz, and Martin Hell. "A new instruction overlapping technique for anti-disassembly and obfuscation of x86 binaries." 2013 Workshop on Anti-malware Testing Research. IEEE, 2013.
+
+[2] Dasgupta, S., Park, D., Kasampalis, T., Adve, V. S., & Roşu, G. (2019, June). A complete formal semantics of x86-64 user-level instruction set architecture. In Proceedings of the 40th ACM SIGPLAN Conference on Programming Language Design and Implementation (pp. 1133-1148).
