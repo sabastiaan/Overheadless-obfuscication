@@ -74,9 +74,9 @@ But let us consider a program P. If we take the second half of P, and we were ma
 
 
 # Required properties for overlapping
-If we consider binary sequence, we say they are binary overlapping, if and only if, we can obtain a program P_1 and P_2 such that
-1. To execute P_1, we start executing at a different byte in the byte sequence than for P_2
-2. For each instruction in P_1, no instruction ends with the same byte index in the sequence as any other in P_2
+If we consider binary sequence, we say they are binary overlapping, if and only if, we can obtain a program P<sup>1</sup> and P<sup>2</sup> such that
+1. To execute P<sup>1</sup>, we start executing at a different byte in the byte sequence than for P<sup>2</sup>
+2. For each instruction in P<sup>1</sup>, no instruction ends with the same byte index in the sequence as any other in P<sup>2</sup>
 
 The first property is to ensure we talk about programs that we about programs that are obtained by starting at a different location than another.
 
@@ -112,20 +112,20 @@ Computationally generating binaries like this is heavy and our current tooling i
 ## Generation 
 
 Let me illustrate the complexity with the following example: 
-Suppose we have 2 programs P_1 and P_2, which we want to overlap. Meaning that the first byte of P_2 should be the second byte of P_1.
-Consider that P_1 is a simple program that wants to first execute an `add` followed by a `mov`, while P_2 wants to execute an `xor` followed by a `jmp`. For brevities sake, I omitted possible arguments. 
+Suppose we have 2 programs P<sup>1</sup> and P<sup>2</sup>, which we want to overlap. Meaning that the first byte of P<sup>2</sup> should be the second byte of P<sup>1</sup>.
+Consider that P<sup>1</sup> is a simple program that wants to first execute an `add` followed by a `mov`, while P<sup>2</sup> wants to execute an `xor` followed by a `jmp`. For brevities sake, I omitted possible arguments. 
 
-Our magical super awesome assembler would look at P_1, recognizes that we should output a binary encoding for `add`. Now it would look up which bytes are defined to represent `add` and it would emit it to some structure. 
+Our magical super awesome assembler would look at P<sup>1</sup>, recognizes that we should output a binary encoding for `add`. Now it would look up which bytes are defined to represent `add` and it would emit it to some structure. 
 Let's say for `add` the assembler emitted `10 AE`. 
 
-Now before we continue, we have to satisfy that P_2 also gets generated correctly. Unfortunately for us, the `xor` instruction is defined to be `06 84`.
+Now before we continue, we have to satisfy that P<sup>2</sup> also gets generated correctly. Unfortunately for us, the `xor` instruction is defined to be `06 84`.
 
 In its current form, it seems as if `add` and `xor` are incompatible for binary overlapping.
 Luckily for us, due to the incredibly complex nature, there is a large set of transformations that can help to remedy this situation.
 
 For instance, it is not completely uncommon that an instruction has a different encoding. So while `add` was first defined to be `10 AE` at first, it might be the case that in the documentation an equivalent encoding exists for our use-case, so maybe we might substitute it with `30 06 84 20`. Enabling us to binary overlap at a cost of lengthening P compared to what we otherwise would.
 
-So now we got `add` and `xor` to overlap. But now we run into the same problem for the second instruction for P_1, our generated encoding for `mov` may now only start with `20`!
+So now we got `add` and `xor` to overlap. But now we run into the same problem for the second instruction for P<sup>1</sup>, our generated encoding for `mov` may now only start with `20`!
 
 This means that chance of being able to satisfy the overlapping properties for instructions is __incredibily__ small. 
 Hence we need every help we can get through combining many different techniques, such that we get an acceptable rate of being able to produce our desired binaries. 

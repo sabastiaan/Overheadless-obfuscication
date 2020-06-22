@@ -57,7 +57,7 @@ So with this out of the way we can get into the real juice of all of this.
 # Binary Overlapping 
 Our programs don't consist of just one instruction but many of them stringed together. 
 From now on I will call a program, i.e a possibily long list of instructions, ```P```. 
-A different program will be called ```P'``` and ```P_1``` will be the first *byte* of a ```P```.
+A different program will be called ```P'``` and ```P<sup>1</sup>``` will be the first *byte* of a ```P```.
 
 
 As you could probably guess, a program runs *sequentually*. 
