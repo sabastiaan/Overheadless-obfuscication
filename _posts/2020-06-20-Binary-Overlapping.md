@@ -149,7 +149,7 @@ In a future blog I will expand these entries.
 ## STOKE 
 
 Implementing techniques so that arbitrary programs can be generated still requires a large engineering effort. However I temporarly circumvented this problem by modifiying STOKE[2] with a custom cost function for generating the largest program that still is overlapping. The result is a 70+ byte binary, albeit it did not presevere my original given sementics, it did proof the existance of these objects. Enough in my opinion to warrent further research into this direction.
-Below is a picture of found binary, I also gave it the requirement of starting with an instruction that objdump wouldn't recognize. Meaning that it also demonstrates a method on how to hide programs from dissasemblers.
+Below is a picture of found binary, I also gave it the requirement of starting with an instruction that objdump wouldn't recognize. Meaning that it also demonstrates a method on how to hide programs from dissasemblers. You can see a full screen version of the image [here]({{ site.baseurl }}/assets/diffxedobjdump.png)
 
 ![Diff between objdump and XED]({{ site.baseurl }}/assets/diffxedobjdump.png)
 
