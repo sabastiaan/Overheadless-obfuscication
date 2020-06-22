@@ -8,27 +8,26 @@ categories: x86 bin
 
 
 # Binary overlapping
-x86 programs underpin a large portion of our world today, much effort has been focused on making the representation of programs as small as possible. However, I believe there is a whole world to explore, even with regard to performance. If we would drop the notion that they should be as small as possible when reading sequentially. In this piece, I will try to give an overview of my work concerning Binary overlapping. Where the same byte sequence can be interpreted as multiple programs if you start parsing with just one byte off.  
+x86 programs underpin a large portion of our world today, much effort has been focused on making the representation of programs as small as possible. However, I believe there is a whole world to explore, even regarding performance. If we would drop the notion that they should be as small as possible when read sequentially. In this piece, I will try to give an overview of my work concerning Binary overlapping. Where the same byte sequence can be interpreted as multiple programs if you start parsing with just one byte off.  
 
 
 
 When an x86 CPU executes a program, a pointer points towards a sequence of bytes.
-Which will get read byte for byte until the CPU recognizes the instruction and it will execute it.
-After execution is done, it will read the next byte until it recognizes it as an instruction repeating this process.
+The CPU will read these byte for byte until the CPU recognizes the instruction and it will execute it.
+After execution is done, it will read the next byte until it recognizes an instruction repeating this process.
 The CPU's today will not strictly adhere to this model anymore and it might execute/parse instructions in advance under the hood already, but it still has to guarantee this model works. We will also consider this model because other software like disassemblers typically works this way.
 
-In x86, instructions are by definition anywhere between 1-15 bytes long, they follow a ** complex encoding scheme which we will ignore for now. 
+In x86, instructions are by definition anywhere between 1-15 bytes long, they follow a complex encoding scheme which we will ignore for now. 
 Furthermore, the word "instruction" is a little bit ambiguous, since it can refer to 
 1. the mnemonic, i.e ADD 
 2. the assembler form: i.e ADD rax, 2
-3. the binary encoding, i.e for ADD that might be 0x10
+3. the binary encoding, i.e for ADD that might be 0x10 0x34. 
 
-The last final thing you should know about is that instructions can have multiple binary encodings.
-
+And a program is a simply list of instructions. 
 
 So let us dive into the good stuff!
 
-Consider the binary following binary sequence
+Consider the binary following binary sequence. The lines are seperated on an instruction level basis. The values in hexadecimal are display to the left, and the corrosponding assembler form to the right. 
 
 ```
 0f 0d c0        NOP EAX, EAX
@@ -37,17 +36,17 @@ Consider the binary following binary sequence
 31  ff          XOR EDI, EDI
 ```
 
-If executed, it will first read the byte `0f`, this doesn't mean anything yet. So we will parse a second byte, `c0`. Still nothing, then we read `d0` and we get a specified instruction. In this case `NOP EAX, EAX`. Best described as "No OPeration executed with register EAX and EAX".
+If executed by the CPU, it will first read the byte `0f`, this doesn't mean anything yet. So we will parse a second byte, `c0`. Still nothing, then we read `d0` and we get a specified instruction. In this case `NOP EAX, EAX`. Best described as "No OPeration executed with register EAX and EAX".
 
 Afterward, we read two `NOP`s and a `XOR` instruction that `XOR`s both it's inputs. Hence zero'ing out all content.
 
 What this program does is not that interesting. Afterall it does nothing for a bit and then only zero's out an register. But after 3 years this is the most beautiful program I could think of.
 
-First things first, why do we execute the same operation for the byte sequence `0f 0d c0` as for `90`. They share no bytes so what is up with this?
+First things first, why do we execute the same operation for the byte sequence `0f 0d c0` as for `90`. How is it possible that two byte sequences that share not a single byte represent the same instruction?
 
-That is because if we look up `0f 0d c0` in the instruction manual, we can see that it is an instruction for prefetching hints. So it should not affect state on the CPU (or at least observable to us). And because of this the disassembler in which I generated this output decided it was equivalent to a NOP and should be displayed as such.
+If we look up `0f 0d c0` in the x86 instruction set manual, we can see that it is an instruction for prefetching hints. So it should not affect state on the CPU (or at least observable to us). Hence the disassembler in which I generated this output decided it was equivalent to a NOP and should be displayed as such.
 
-However, this above piece of code is only disassembled like that because I threw it inside a proper disassembler (XED), let's take a look at the output of objdump.
+However, this above piece of code is only disassembled like that because I threw it inside a proper disassembler (intel's XED in this case). Let's take a look at the output of an arguably more well known disassembler, objdump.
 
 ```
 0f                      prefetch (bad)
@@ -55,7 +54,7 @@ However, this above piece of code is only disassembled like that because I threw
 ....
 ```
 
-Three interesting things happened here, first of all, it didn't decode it correctly. Which isn't too uncommon even in mainstream disassemblers if you start looking for it[0]. 
+Three interesting things happened here, first of all, it didn't decode it correctly. Which isn't too uncommon even in mainstream disassemblers if you start hunting for it[0]. 
 The second interesting thing that happened is that we suddenly obtained a totally new instruction that we have not seen before by starting execution/parsing one byte later, while still using the same original byte sequence!
 
 But most importantly of all, _what is the next executed instruction_?
@@ -75,9 +74,9 @@ But let us consider a program P. If we take the second half of P, and we were ma
 
 
 # Required properties for overlapping
-If we consider binary sequence, we say they are binary overlapping, if and only if, we can obtain a program P and P' such that
-1. To execute P, we start executing at a different byte in the byte sequence than for P'
-2. For each instruction in P, no instruction ends with the same byte index in the sequence as any other in P'
+If we consider binary sequence, we say they are binary overlapping, if and only if, we can obtain a program P_1 and P_2 such that
+1. To execute P_1, we start executing at a different byte in the byte sequence than for P_2
+2. For each instruction in P_1, no instruction ends with the same byte index in the sequence as any other in P_2
 
 The first property is to ensure we talk about programs that we about programs that are obtained by starting at a different location than another.
 
@@ -113,20 +112,20 @@ Computationally generating binaries like this is heavy and our current tooling i
 ## Generation 
 
 Let me illustrate the complexity with the following example: 
-Suppose we have 2 programs P and P', which we want to overlap. Meaning that the first byte of P' should be the second byte of P.
-Consider that P is a simple program that wants to first execute an `add` followed by a `mov`, while P' wants to execute an `xor` followed by a `jmp`. For brevities sake, I omitted possible arguments. 
+Suppose we have 2 programs P_1 and P_2, which we want to overlap. Meaning that the first byte of P_2 should be the second byte of P_1.
+Consider that P_1 is a simple program that wants to first execute an `add` followed by a `mov`, while P_2 wants to execute an `xor` followed by a `jmp`. For brevities sake, I omitted possible arguments. 
 
-Our magical super awesome assembler would look at P, recognizes that we should output a binary encoding for `add`. Now it would look up which bytes are defined to represent `add` and it would emit it to some structure. 
+Our magical super awesome assembler would look at P_1, recognizes that we should output a binary encoding for `add`. Now it would look up which bytes are defined to represent `add` and it would emit it to some structure. 
 Let's say for `add` the assembler emitted `10 AE`. 
 
-Now before we continue, we have to satisfy that P' also gets generated correctly. Unfortunately for us, the `xor` instruction is defined to be `06 84`.
+Now before we continue, we have to satisfy that P_2 also gets generated correctly. Unfortunately for us, the `xor` instruction is defined to be `06 84`.
 
 In its current form, it seems as if `add` and `xor` are incompatible for binary overlapping.
 Luckily for us, due to the incredibly complex nature, there is a large set of transformations that can help to remedy this situation.
 
 For instance, it is not completely uncommon that an instruction has a different encoding. So while `add` was first defined to be `10 AE` at first, it might be the case that in the documentation an equivalent encoding exists for our use-case, so maybe we might substitute it with `30 06 84 20`. Enabling us to binary overlap at a cost of lengthening P compared to what we otherwise would.
 
-So now we got `add` and `xor` to overlap. But now we run into the same problem for the second instruction for P, our generated encoding for `mov` may now only start with `20`!
+So now we got `add` and `xor` to overlap. But now we run into the same problem for the second instruction for P_1, our generated encoding for `mov` may now only start with `20`!
 
 This means that chance of being able to satisfy the overlapping properties for instructions is __incredibily__ small. 
 Hence we need every help we can get through combining many different techniques, such that we get an acceptable rate of being able to produce our desired binaries. 
