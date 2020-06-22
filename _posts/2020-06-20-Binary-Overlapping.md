@@ -64,10 +64,10 @@ We know it is should be the next byte in the stream, so looking at the first out
 
 If we would continue this, we would have to completely independent programs inside the same original binary sequence!
 
-# Usecases
+# Use-cases
 
-This technique has 2 very interesting use cases. The original use case, and the reason why I came up with this idea, is obfuscation. 
-Notice that in the second output, the output of the disassembler objdump, can now theoretically be _completely different_ from what another actor, like your CPU, could read. Implying that malware can be completely hidden from malware analysis or automatic analysis tools without _any_ overhead. Only by exploiting a single parsing error. Which can be guaranteed against most common disassembler parsing techniques (this will the topic of another blog).
+This technique has 2 very interesting use-cases. The original use-case, and the reason why I came up with this idea, is obfuscation. 
+Notice that in the second output, the output of the disassembler objdump, can now theoretically be _completely different_ program from what another actor, like your CPU, could read. Implying that malware can be completely hidden from malware analysis or automatic analysis tools without _any_ overhead. Only by exploiting a single parsing error. Which can be guaranteed against most common disassembler parsing techniques (this will the topic of another blog).
 
 The second and probably more exciting use case is performance.
 In the examples above we didn't give that much thought on what the programs are or are supposed to look like.
@@ -154,8 +154,11 @@ Below is a picture of found binary, I also gave it the requirement of starting w
 ![Diff between objdump and XED]({{ site.baseurl }}/assets/diffxedobjdump.png)
 
 
+# The next step
 
+Unfortionatlly for us STOKE has clear scaling issues. Even though we would like to try to create incremental progress, the limitations are in my opinion to servere to continue this path. Another large problem is that we need to guarentee semantic equivalency betweeen our in- and output program. The fact that STOKE operates on stochistic processes makes it hard to evualuate the quality of possible generation techniques. 
 
+This leads us to the unfortunate situation in which 
 
 
 
