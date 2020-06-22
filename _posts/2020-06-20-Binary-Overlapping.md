@@ -56,7 +56,6 @@ However this above piece of code is only disassembled like that because I threw 
 ```
 
 Three interstings things happend here, first of all it didn't decode it correctly. Which isn't to uncommon even in mainstream dissasemblers if you start looking for it[0]. 
-
 The second interesting that happend we suddenly obtained a totally new instruction that we have not seen before by starting execution/parsing one byte later, while still using the same original byte sequence!
 
 But most importantly of all, _what is the next executed instruction_?
@@ -89,14 +88,18 @@ ff c5                   inc    ebp
 fc                      cld
 77 90                   ja     0xffffffffffffff95
 90                      nop             <- same as the second stream
-....
+.
+.
+.
 ```
 
 ```
 c5 fc 77                vzeroall
 90                      nop
 90                      nop             <- same as the first stream
-....
+.
+.
+.
 ```
 
 
@@ -142,8 +145,8 @@ Through the 3 years that I have been thinking about this problem, I accumlated a
 * let instructions use different registers 
 * let instructions switch between using registers or memory
 
-All of these techniques require extensive knowlegde of the program to a level typically not available to an assembler. 
-Luckly if implemented gives an enourmous search space in which we can find potential candidate programs since we can keep infintily combining them.
+All of these techniques require extensive knowlegde of the program and/or instruction set to a level typically not available to an assembler. 
+Luckly if implemented it yields an enourmous search space in which we can find potential candidate programs since we can keep infintily combining them.
 In a future blog I will expand these entries.
 
 ## STOKE 
