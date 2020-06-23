@@ -8,7 +8,7 @@ categories: x86 bin
 
 
 # Binary overlapping
-x86 programs underpin a large portion of our world today, much effort has been focused on making the representation of programs as small as possible. However, I believe there is a whole world to explore, even regarding performance. If we would drop the notion that they should be as small as possible when read sequentially. In this piece, I will try to give an overview of my work concerning Binary overlapping. Where the same byte sequence can be interpreted as multiple programs if you start parsing with just one byte off.  
+x86 programs underpin a large portion of our world today, much effort has been focused on making the representation of programs as small as possible. However, I believe there is a whole world to explore, even regarding performance. If we would drop the notion that they should be as small as possible when read sequentially. In this piece, I will try to give an overview of my work concerning Binary overlapping. Where the same byte sequence can be interpreted as multiple programs if you start parsing with just one byte off. With the key distinction that we do not start parsing at the start of a different instruction, but always somewhere in the middle, and keeping it that way for as long as possible. 
 
 
 
