@@ -100,14 +100,14 @@ c5 fc 77                vzeroall
 ```
 
 
-# Obtaining these binaries
+## Obtaining these binaries
 We have 3 options that I'm aware of for obtaining these binaries.
 We can write these binaries by hand, this is, of course, no option besides for very specialized cases and probably not worth it.
 
 We could try to alter the generation process of our compiler/assembler.
 Computationally generating binaries like this is heavy and our current tooling is not designed to support generating these binaries. 
 
-## Generation 
+### Generation 
 
 Let me illustrate the complexity with the following example: 
 Suppose we have 2 programs P<sup>1</sup> and P<sup>2</sup>, which we want to overlap. Meaning that the first byte of P<sup>2</sup> should be the second byte of P<sup>1</sup>.
@@ -129,7 +129,7 @@ This means that chance of being able to satisfy the overlapping properties for i
 Hence we need every help we can get through combining many different techniques, such that we get an acceptable rate of being able to produce our desired binaries. 
 
 
-### Overview of generation techniques
+#### Overview of generation techniques
 Through the 3 years that I have been thinking about this problem, I accumulated a list of possible techniques:
 
 
