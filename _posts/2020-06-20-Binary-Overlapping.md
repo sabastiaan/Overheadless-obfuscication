@@ -78,7 +78,7 @@ If we consider binary sequence, we say they are binary overlapping, if and only 
 1. To execute P<sup>1</sup>, we start executing at a different byte in the byte sequence than for P<sup>2</sup>
 2. For each instruction in P<sup>1</sup>, no instruction ends with the same byte index in the sequence as any other in P<sup>2</sup>
 
-The first property is to ensure we talk about programs that we about programs that are obtained by starting at a different location than another.
+The first property is to ensure we talk about programs that are obtained by starting at a different location than another.
 
 The second property is there to stop them from converging. If this property wasn't satisfied, any 2 different programs would converge into the same from that point onwards, example:
 
