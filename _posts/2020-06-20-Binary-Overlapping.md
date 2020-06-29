@@ -107,7 +107,7 @@ We can write these binaries by hand, this is, of course, no option besides for v
 We could try to alter the generation process of our compiler/assembler.
 Computationally generating binaries like this is heavy and our current tooling is not designed to support generating these binaries. 
 
-### Generation 
+### Compiler Generation 
 
 Let me illustrate the complexity with the following example: 
 Suppose we have 2 programs P<sup>1</sup> and P<sup>2</sup>, which we want to overlap. Meaning that the first byte of P<sup>2</sup> should be the second byte of P<sup>1</sup>.
@@ -146,7 +146,7 @@ All of these techniques require extensive knowledge of the program and/or instru
 Luckily if implemented gives an enormous search space in which we can find potential candidate programs since we can keep infinitely combining them.
 In a future blog, I will expand these entries.
 
-## STOKE 
+### STOKE 
 
 Implementing techniques so that arbitrary programs can be generated still requires a large engineering effort. However, I temporarily circumvented this problem by modifying STOKE[2] with a custom cost function for generating the largest program that still is overlapping. The result is a 70+ byte binary, albeit it did not preserve my original given semantics, it did prove the existence of these objects. Enough in my opinion to warrant further research into this direction.
 Below is a picture of found binary, I also gave it the requirement of starting with an instruction that objdump wouldn't recognize. Meaning that it also demonstrates a method on how to hide programs from disassemblers. You can see a full-screen version of the image [here]({{ site.baseurl }}/assets/diffxedobjdump.png)
