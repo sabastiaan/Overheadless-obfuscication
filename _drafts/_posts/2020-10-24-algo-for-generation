@@ -1,0 +1,75 @@
+---
+layout: category
+category: bin
+---
+
+# Problem definition
+
+So for a given list of semantics. Can we find a find an overlapping structure without resorting to a fixed structure to embedded our semantics?
+TODO: Explain fixed structure.
+
+## Semantics
+
+We first have to define "semantics". We could pick semantics to mean the set of operations needed to forfill some desired action. 
+Our choice here will be vital for how are going to solve our problem since this will dictate how our toolbox that we can use will look like.
+So for semantics in this case will mean the following: Semantics S will be a list S_1 to S_n, which when executed sequently, will change the state of machine from the start state M_start to M_end. Here we restrict each S_i the execution of exactly one x86 instruction.
+
+While each semantic unit is abstract, each x86 instruction, or list of x86 instructions, are a valid encoding as long as these also alter the machine into the desired end state.
+
+This will allow us to say that add rax 0, is a valid encoding for the NOP semantic, as well as add rax 1 followed by an sub rax 1 as long as the flags were in the correct conditions.
+
+
+# Intuition
+
+## Our program
+Generating a program that executes our list of semantics is trivial. The semantics represent x86 instructions anyway so if we would type them up and feed them into a dissasembler we have a valid program that executes our desired semantics. What rests us to do is show that this program has the overlapping property. 
+Just encoding our semantics will most likely not result in a program which has this. Thus either we need to start doing something clever right away, or we can start from a broken one and repair it. 
+
+Since encodings are trivial to generate, lets do that at the beginning which will give us a (very likely broken) program P.
+
+Recall that if a program is overlapping we have the following: if we start following executing a program from byte 0 we have a completely valid program till the last byte, called Main Execution P (MEP), as well as if we start executing from byte 1, called Hidden Execution path (HEP), where HEP and MEP share no ending byte.
+
+If the program is overlapping valid we are done.
+If the program is not overlapping we have that either there is an invalid encoding of an instruction in MEP/HEP or they share overlapping instructions.
+
+We will fix any of these issues in our program till we have a valid overlapping program.
+
+
+## Assumptions for our program
+So now we have the situation that from our semantics, we have encoded our semantics in a program P. However we have 2 execution paths in P, we will always assume HEP should encode our initial semantics since we most likely want to hide our original semantics. Because this is just our initial start point, we also assume we have chosen a single instruction x86 for each semantic. Leading that S_i = HEP_i where subscript i denotes the i'th instruction/unit.
+
+We know that we want to maintain the semantics in HEP and that we do not care about the semantics of MEP. Implying that we are free to change the precies encoding to use for a
+
+## Properties 
+Let us consider an the i'th instruction in HEP which is not the first. We know that that it 
+1. Encodes the semantics of S_i
+2. It must have not have the same ending byte as any instruction in MEP
+
+We can restate 2 in a different way, we know that HEP_i has a predecesor. We also know that MEP starts 1 byte before HEP.
+Meaning that if we start from MEP, we go thourgh HEP_{i-1} till we have an instruction that shares bytes with HEP_i.
+Let this instruction from MEP that shares bytes with HEP_{i-1} and HEP_i be called the incoming arrow to HEP_i.
+
+Analoglsy we can use the same construction to define outcoming arrow, which are the bytes in HEP_i and HEP_{i+1} that together form a single instruction in MEP.
+Notice that since an arrow must form a complete instruction in MEP, we can have the situation in which an HEP instruction might be embedded completely in the MEP instruction, and hence has no arrows. Also, it might be possible that we have multiple instructions in MEP between the two arrows for HEP_i.
+
+
+
+
+
+
+We are given the semantics for a program. Can we hide this?
+
+Semantic vs instruction.
+So for semantics, we could have made an extensive grammar to encode a turing complete language. 
+So we use the word of semantic to mean any single operation which can be expressed dire
+
+Our problem we need to solve is: for an input list of semantics S. Can we encode each S_i, where i is the ith semeantic to be executed, such that it is overlapping?
+
+
+
+
+
+
+The Intel x86 instruction set has been to be rather weird. It is an incredibly complex monster that underpins modern desktop computing. 
+Besides it being, to just put it, frankly odd. It is also a really interesting source of easy questions that keep you busy for a long time.
+In this blog series I will guide you through the journy that I have taken the past several years and highlight some of favorite places in this abyss of madness.
