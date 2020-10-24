@@ -52,9 +52,16 @@ Let this instruction from MEP that shares bytes with HEP_{i-1} and HEP_i be call
 Analoglsy we can use the same construction to define outcoming arrow, which are the bytes in HEP_i and HEP_{i+1} that together form a single instruction in MEP.
 Notice that since an arrow must form a complete instruction in MEP, we can have the situation in which an HEP instruction might be embedded completely in the MEP instruction, and hence has no arrows. Also, it might be possible that we have multiple instructions in MEP between the two arrows for HEP_i.
 
+We also will say that if there exists an outgoing arrow, then the path from the starting arrow to the outgoing arrow must be valid as well. 
 
+Now that we have the heavy lifting out of our way of making our construction, we can continue with how to solve our problem
 
+## Fix ups
 
+In our broken program, we know that there must exists a first HEP instruction which is broken and let us consider this one. 
+We have "fixed" this instruction if it maintins its original semantics and if we allow of MEP stream to continue till after HEP (covering all cases here is tricky, we will fix this later).
+
+In the case that HEP had an incoming arrow, then it must be that it had 
 
 
 We are given the semantics for a program. Can we hide this?
