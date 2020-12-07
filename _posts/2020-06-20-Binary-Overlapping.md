@@ -7,10 +7,11 @@ categories: x86 bin
 
 
 
-# Binary overlapping
-Program comes in all shapes and sizes, but one of the most important form is x86 binary executables. These files can be read by an x86 CPU and will alter the CPU  state in some way. Much effort has gone into how we represent these binaries, like making them smaller so that the execute faster. But also much effort has gone into making them harder the read when decompiled, aka being turned back from binary into human readable text. People do this to for instance protect intellectual property, but also to hide mallicious code. It is vital for us thus understand all forms of which is possible to get both the optimization and to defend ourselves against mallicous actors.
 
-One still comepletely undiscovered is that of binary overlapping. Where the same byte sequence can be interpreted as multiple programs if you start parsing with just one byte off. With the key distinction that we do not start parsing at the start of a different instruction, but always somewhere in the middle, and keeping it that way for as long as possible. 
+# Binary overlapping
+Computer programs comes in all shapes and sizes, but one of the most important form is x86 binary executables. These files can be read by an x86 CPU and will alter the CPU  state in some way. Much effort has gone into how we represent these binaries, like making them smaller so that they execute faster. But also much effort has gone into making them harder the read when decompiled, aka being turned back from binary into human-readable text. People do this to for instance protect intellectual property, but also to hide malicious code. It is vital for us thus to understand all forms of which is possible to get both the optimization and to defend ourselves against malicious actors.
+
+One still completely undiscovered is that of binary overlapping. Where the same byte sequence can be interpreted as multiple programs if you start parsing with just one byte off. The key distinction that we do not start parsing at the start of a different instruction, but always somewhere in the middle, and keeping it that way for as long as possible. 
 
 
 When an x86 CPU executes a program, a pointer points towards a sequence of bytes.
@@ -24,11 +25,11 @@ Furthermore, the word "instruction" is a little bit ambiguous, since it can refe
 2. the assembler form: i.e ADD rax, 2
 3. the binary encoding, i.e for ADD that might be 0x10 0x34. 
 
-And a program is a simply list of instructions. 
+And a program is a simple list of instructions. 
 
 So let us dive into the good stuff!
 
-Consider the binary following binary sequence. The lines are separated on an instruction level basis. The values in hexadecimal are display to the left, and the corresponding assembler form to the right. 
+Consider the binary following binary sequence. The lines are separated on an instruction level basis. The values in hexadecimal are displayed to the left, and the corresponding assembler form to the right. 
 
 ```
 0f 0d c0        NOP EAX, EAX
@@ -39,15 +40,15 @@ Consider the binary following binary sequence. The lines are separated on an ins
 
 If executed by the CPU, it will first read the byte `0f`, this doesn't mean anything yet. So we will parse a second byte, `c0`. Still nothing, then we read `d0` and we get a specified instruction. In this case `NOP EAX, EAX`. Best described as "No OPeration executed with register EAX and EAX".
 
-Afterward, we read two `NOP`s and a `XOR` instruction that `XOR`s both it's inputs. Hence zeroing out all content.
+Afterward, we read two `NOP`s and a `XOR` instruction that `XOR`s both its inputs. Hence zeroing out all content.
 
-What this program does is not that interesting. After all it does nothing for a bit and then only zero's out an register. But after 3 years this is the most beautiful program I could think of.
+What this program does is not that interesting. After all, it does nothing for a bit and then only zero's out an register. But after 3 years this is the most beautiful program I could think of.
 
-First things first, why do we execute the same operation for the byte sequence `0f 0d c0` as for `90`. How is it possible that two byte sequences that share not a single byte represent the same instruction?
+First things first, why do we execute the same operation for the byte sequence `0f 0d c0` as for `90`. How is it possible that two byte-sequences that share not a single byte represent the same instruction?
 
-If we look up `0f 0d c0` in the x86 instruction set manual, we can see that it is an instruction for prefetching hints. So it should not affect state on the CPU (or at least observable to us). Hence the disassembler in which I generated this output decided it was equivalent to a NOP and should be displayed as such.
+If we look up `0f 0d c0` in the x86 instruction set manual, we can see that it is an instruction for prefetching hints. So it should not affect the state on the CPU (or at least observable to us). Hence the disassembler in which I generated this output decided it was equivalent to a NOP and should be displayed as such.
 
-However, this above piece of code is only disassembled like that because I threw it inside a proper disassembler (intel's XED in this case). Let's take a look at the output of an arguably more well known disassembler, objdump.
+However, this above piece of code is only disassembled like that because I threw it inside a proper disassembler (intel's XED in this case). Let's take a look at the output of an arguably more well-known disassembler, objdump.
 
 ```
 0f                      prefetch (bad)
@@ -148,19 +149,20 @@ Luckily if implemented gives an enormous search space in which we can find poten
 In a future blog, I will expand these entries.
 
 ## STOKE 
-While compilers are the mostly determinstic (or based on determinstic processes), we also have so called super optimzers. These typically alter a given program with some sort of randomness attached. While Imlementing techniques so that arbitrary programs can be generated still requires a large engineering effort. However, I temporarily circumvented this problem by modifying STOKE[2] with a custom cost function for generating the largest program that still is overlapping. The result is a 70+ byte binary, albeit it did not preserve my original given semantics, it did prove the existence of these objects. Enough in my opinion to warrant further research into this direction.
-Below is a picture of found binary, I also gave it the requirement of starting with an instruction that objdump wouldn't recognize. Meaning that it also demonstrates a method on how to hide programs from disassemblers. You can see a full-screen version of the image [here]({{ site.baseurl }}/assets/diffxedobjdump.png)
+While compilers are mostly deterministic (or based on deterministic processes), we also have so-called super optimizers. These typically alter a given program with some sort of randomness attached. While Implementing techniques so that arbitrary programs can be generated still requires a large engineering effort. However, I temporarily circumvented this problem by modifying STOKE[2] with a custom cost function for generating the largest program that still is overlapping. The result is a 70+ byte binary, albeit it did not preserve my original given semantics, it did prove the existence of these objects. Enough in my opinion to warrant further research into this direction.
+Below is a picture of the found binary, I also gave it the requirement of starting with an instruction that objdump wouldn't recognize. Meaning that it also demonstrates a method on how to hide programs from disassemblers. You can see a full-screen version of the image [here]({{ site.baseurl }}/assets/diffxedobjdump.png)
 
 ![Diff between objdump and XED]({{ site.baseurl }}/assets/diffxedobjdump.png)
 
 
 # The next step
 
-The next step that should be taken is implementing more techniques like described above. Currently experiments on STOKE are ran with the limitation that STOKE mainly performs contextless mutations randomly to a binary. Heavily limiting the effectiveness. Verifying more context dependent mutations was always a major issue. 
+The next step that should be taken is implementing more techniques like described above. Currently, experiments on STOKE are run with the limitation that STOKE mainly performs contextless mutations randomly to a binary. Heavily limiting the effectiveness. Verifying more context-dependent mutations was always a major issue. 
 
-However with new recent work nearly the entire semantics of x86 instruction set have been formally encoded[2] and implemented in STOKE. With this we efficiently we can start moving from arbitrary mutations, to new novel optimizations. 
+However, with new recent work, nearly the entire semantics of x86 instruction set have been formally encoded[2] and implemented in STOKE. With this, we can start moving from arbitrary mutations to new novel optimizations. 
 
 This is a topic I will be researching for the coming year. If you are interested [here](https://aix86.com/x86/bin/2020/06/20/Binary-Overlapping.html) is my follow up blog on how we can model this problem a lot easier! 
+
 
 
 
