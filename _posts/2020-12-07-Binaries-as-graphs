@@ -1,4 +1,11 @@
-# EIX86
+---
+layout: post
+title:  "Binaries as a graph"
+date:   2020-12-07 17:43:00 +0200
+categories: x86 bin
+---
+
+
 
 Checking if a single x86 instruction text contains multiple valid execution paths is a hard problem to get your head around.
 The hardest thing when it comes to this problem is the incredible lack of substructure based on an asinine encoding of an absurdly complex instruction set.
