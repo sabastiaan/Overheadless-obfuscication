@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Binary overlapping"
+title:  "Embedding multiple x86 programs inside a single binary"
 date:   2020-06-20 23:09:46 +0200
 categories: x86 bin
 ---
