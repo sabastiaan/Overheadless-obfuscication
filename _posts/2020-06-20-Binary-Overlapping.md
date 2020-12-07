@@ -8,13 +8,14 @@ categories: x86 bin
 
 
 # Binary overlapping
-x86 programs underpin a large portion of our world today, much effort has been focused on making the representation of programs as small as possible. However, I believe there is a whole world to explore, even regarding performance. If we would drop the notion that they should be as small as possible when read sequentially. In this piece, I will try to give an overview of my work concerning Binary overlapping. Where the same byte sequence can be interpreted as multiple programs if you start parsing with just one byte off. With the key distinction that we do not start parsing at the start of a different instruction, but always somewhere in the middle, and keeping it that way for as long as possible. 
+Program comes in all shapes and sizes, but one of the most important form is x86 binary executables. These files can be read by an x86 CPU and will alter the CPU  state in some way. Much effort has gone into how we represent these binaries, like making them smaller so that the execute faster. But also much effort has gone into making them harder the read when decompiled, aka being turned back from binary into human readable text. People do this to for instance protect intellectual property, but also to hide mallicious code. It is vital for us thus understand all forms of which is possible to get both the optimization and to defend ourselves against mallicous actors.
 
+One still comepletely undiscovered is that of binary overlapping. Where the same byte sequence can be interpreted as multiple programs if you start parsing with just one byte off. With the key distinction that we do not start parsing at the start of a different instruction, but always somewhere in the middle, and keeping it that way for as long as possible. 
 
 
 When an x86 CPU executes a program, a pointer points towards a sequence of bytes.
-The CPU will read these byte for byte until the CPU recognizes the instruction and it will execute it.
-After execution is done, it will read the next byte until it recognizes an instruction repeating this process.
+The CPU will read these a byte at a time until the CPU recognizes the instruction and it will execute it.
+After execution is done, it will continue reading bytes until it recognizes an instruction repeating this process.
 The CPU's today will not strictly adhere to this model anymore and it might execute/parse instructions in advance under the hood already, but it still has to guarantee this model works. We will also consider this model because other software like disassemblers typically works this way.
 
 In x86, instructions are by definition anywhere between 1-15 bytes long, they follow a complex encoding scheme which we will ignore for now. 
@@ -104,7 +105,7 @@ c5 fc 77                vzeroall
 We have 3 options that I'm aware of for obtaining these binaries.
 We can write these binaries by hand, this is, of course, no option besides for very specialized cases and probably not worth it.
 
-We could try to alter the generation process of our compiler/assembler.
+The second option is by trying to alter the generation process of our compiler/assembler.
 Computationally generating binaries like this is heavy and our current tooling is not designed to support generating these binaries. 
 
 ### Compiler Generation 
@@ -146,9 +147,8 @@ All of these techniques require extensive knowledge of the program and/or instru
 Luckily if implemented gives an enormous search space in which we can find potential candidate programs since we can keep infinitely combining them.
 In a future blog, I will expand these entries.
 
-### STOKE 
-
-Implementing techniques so that arbitrary programs can be generated still requires a large engineering effort. However, I temporarily circumvented this problem by modifying STOKE[2] with a custom cost function for generating the largest program that still is overlapping. The result is a 70+ byte binary, albeit it did not preserve my original given semantics, it did prove the existence of these objects. Enough in my opinion to warrant further research into this direction.
+## STOKE 
+While compilers are the mostly determinstic (or based on determinstic processes), we also have so called super optimzers. These typically alter a given program with some sort of randomness attached. While Imlementing techniques so that arbitrary programs can be generated still requires a large engineering effort. However, I temporarily circumvented this problem by modifying STOKE[2] with a custom cost function for generating the largest program that still is overlapping. The result is a 70+ byte binary, albeit it did not preserve my original given semantics, it did prove the existence of these objects. Enough in my opinion to warrant further research into this direction.
 Below is a picture of found binary, I also gave it the requirement of starting with an instruction that objdump wouldn't recognize. Meaning that it also demonstrates a method on how to hide programs from disassemblers. You can see a full-screen version of the image [here]({{ site.baseurl }}/assets/diffxedobjdump.png)
 
 ![Diff between objdump and XED]({{ site.baseurl }}/assets/diffxedobjdump.png)
@@ -158,7 +158,9 @@ Below is a picture of found binary, I also gave it the requirement of starting w
 
 The next step that should be taken is implementing more techniques like described above. Currently experiments on STOKE are ran with the limitation that STOKE mainly performs contextless mutations randomly to a binary. Heavily limiting the effectiveness. Verifying more context dependent mutations was always a major issue. 
 
-However with new recent work nearly the entire semantics of x86 instruction set have been formally encoded[2] and implemented in STOKE. With this we efficiently we can start moving from arbitrary mutations, to new novel optimizations.
+However with new recent work nearly the entire semantics of x86 instruction set have been formally encoded[2] and implemented in STOKE. With this we efficiently we can start moving from arbitrary mutations, to new novel optimizations. 
+
+This is a topic I will be researching for the coming year. If you are interested [here](https://aix86.com/x86/bin/2020/06/20/Binary-Overlapping.html) is my follow up blog on how we can model this problem a lot easier! 
 
 
 
