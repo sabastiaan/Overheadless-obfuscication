@@ -1,0 +1,15 @@
+---
+layout: post
+title:  "Haskell packages for FoxDec"
+date:   2021-01-31 23:09:46 +0200
+categories: misc
+---
+
+The build instructions for FoxDec state you should adhoc search for the packages to be installed, this took me quite a bit of time so here I did it for you.
+
+```
+
+apt install haskell cabal z3
+cabal install containers Unique GraphSCC z3 parsec3-numbers parsec-numbers bitwise bits random argparser
+```
+enjoy!
